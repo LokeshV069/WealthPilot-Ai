@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BrowserRouter, Routes, Route, NavLink, Navigate, useLocation } from "react-router-dom";
+import { HashRouter, Routes, Route, NavLink, Navigate, useLocation } from "react-router-dom";
 import { AnimatePresence, motion, LayoutGroup } from "framer-motion";
 import {
   LayoutDashboard,
@@ -365,7 +365,7 @@ function AppShell() {
   }
 
   return (
-    <BrowserRouter>
+    <HashRouter>
       <div className={`h-screen flex ${selectedClient ? "client-shell" : ""}`}>
         <Sidebar
           mode={selectedClient ? "client-detail" : "manager-home"}
@@ -391,7 +391,7 @@ function AppShell() {
             )}
             <AnimatePresence mode="wait">
               {!selectedClient ? (
-                <motion.div
+                 <motion.div
                   key="hub"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -428,7 +428,7 @@ function AppShell() {
           </div>
         </LayoutGroup>
       </div>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 
