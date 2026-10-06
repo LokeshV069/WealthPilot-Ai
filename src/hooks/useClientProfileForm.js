@@ -74,13 +74,15 @@ export function useClientProfileForm(initialClient, onResult) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-      const data = await res.json();
-            if (data.status === "waiting" || data.success === false) {
+      const rawData = await res.json();
+      const data = Array.isArray(rawData) ? rawData[0] : (rawData?.data && !rawData?.agents ? rawData.data : rawData);
+
+      if (data?.status === "waiting" || data?.success === false) {
         setStatus("waiting");
         showToast("Still processing — try saving again shortly.", "info");
         return;
       }
-      if (data.agents) {
+      if (data?.agents) {
         setStatus("success");
         showToast("Profile saved — dashboard updated with live results.", "success");
         onResult?.(data);

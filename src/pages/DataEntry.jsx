@@ -80,13 +80,14 @@ export default function DataEntry({ initialClient, onResult }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-      const data = await res.json();
+      const rawData = await res.json();
+      const data = Array.isArray(rawData) ? rawData[0] : (rawData?.data && !rawData?.agents ? rawData.data : rawData);
 
-      if (data.status === "waiting" || data.success === false) {
+      if (data?.status === "waiting" || data?.success === false) {
         setStatus("waiting");
         return;
       }
-      if (data.agents) {
+      if (data?.agents) {
         setStatus("success");
         onResult?.(data);
         return;
