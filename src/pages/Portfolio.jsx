@@ -9,14 +9,23 @@ import { useToast } from "../context/ToastContext";
 
 const CUSTODIAN_COLORS = ["var(--color-gold)", "var(--color-teal)", "var(--color-slate)", "var(--color-plum)"];
 const ASSET_CLASSES = ["equity", "bonds", "cash", "alternatives"];
-const KNOWN_CUSTODIANS = ["Charles Schwab", "Fidelity", "Vanguard", "Pershing", "Morgan Stanley"];
+const KNOWN_CUSTODIANS = [
+  "Zerodha",
+  "Groww",
+  "HDFC Securities",
+  "SBI Securities",
+  "ICICI Direct",
+  "Charles Schwab",
+  "Fidelity",
+  "Vanguard",
+];
 
 export default function Portfolio({ holdings = [], onAddHolding, onDeleteHolding }) {
   const { showToast } = useToast();
   const [showAddModal, setShowAddModal] = useState(false);
   const [newHolding, setNewHolding] = useState({
     ticker: "",
-    custodian: "Charles Schwab",
+    custodian: "Zerodha",
     quantity: "",
     price: "",
     assetClass: "equity",
@@ -338,12 +347,33 @@ export default function Portfolio({ holdings = [], onAddHolding, onDeleteHolding
                     <label className="text-xs text-muted block mb-1">Ticker Symbol</label>
                     <input
                       type="text"
-                      placeholder="e.g. NVDA"
+                      list="portfolio-ticker-options"
+                      placeholder="e.g. SBIN, HDFCBANK, NVDA"
                       value={newHolding.ticker}
-                      onChange={(e) => setNewHolding((h) => ({ ...h, ticker: e.target.value.toUpperCase() }))}
+                      onChange={(e) => {
+                        const val = e.target.value.toUpperCase();
+                        let suggestedPrice = newHolding.price;
+                        if (!newHolding.price) {
+                          if (val === "SBIN") suggestedPrice = "820.00";
+                          else if (val === "HDFCBANK") suggestedPrice = "1650.00";
+                          else if (val === "HDB") suggestedPrice = "65.50";
+                          else if (val === "AAPL") suggestedPrice = "230.00";
+                          else if (val === "MSFT") suggestedPrice = "420.00";
+                          else if (val === "BONDFUND") suggestedPrice = "100.00";
+                        }
+                        setNewHolding((h) => ({ ...h, ticker: val, price: suggestedPrice }));
+                      }}
                       className="w-full bg-white/5 border border-hairline rounded-lg px-3 py-2 text-sm text-ink focus:outline-none focus:border-gold/50"
                       autoFocus
                     />
+                    <datalist id="portfolio-ticker-options">
+                      <option value="SBIN">State Bank of India (NSE: SBIN)</option>
+                      <option value="HDFCBANK">HDFC Bank Ltd (NSE: HDFCBANK)</option>
+                      <option value="HDB">HDFC Bank ADR (NYSE: HDB)</option>
+                      <option value="AAPL">Apple Inc.</option>
+                      <option value="MSFT">Microsoft Corp.</option>
+                      <option value="BONDFUND">Bond Fund NAV</option>
+                    </datalist>
                   </div>
                   <div>
                     <label className="text-xs text-muted block mb-1">Asset Class</label>

@@ -247,8 +247,20 @@ Official Meridian Wealth Regulatory Filing`;
             {f.form.holdings.length === 0 && <p className="text-sm text-muted">No holdings recorded.</p>}
             {f.form.holdings.map((h, i) => (
               <div key={i} className="grid grid-cols-[1fr_1fr_1fr_1fr_auto] gap-3 mb-3 items-center">
-                <input placeholder="Ticker" value={h.ticker} onChange={(e) => f.updateHolding(i, "ticker", e.target.value)} className={inputClass()} />
-                <input placeholder="Custodian" value={h.custodian} onChange={(e) => f.updateHolding(i, "custodian", e.target.value)} className={inputClass()} />
+                <input
+                  list="ticker-options"
+                  placeholder="Ticker (e.g. SBIN, HDFCBANK)"
+                  value={h.ticker}
+                  onChange={(e) => f.updateHolding(i, "ticker", e.target.value.toUpperCase())}
+                  className={inputClass()}
+                />
+                <input
+                  list="custodian-options"
+                  placeholder="Custodian (e.g. Zerodha, HDFC Sec)"
+                  value={h.custodian}
+                  onChange={(e) => f.updateHolding(i, "custodian", e.target.value)}
+                  className={inputClass()}
+                />
                 <input type="number" placeholder="Qty" value={h.quantity} onChange={(e) => f.updateHolding(i, "quantity", e.target.value)} className={inputClass()} />
                 <select value={h.assetClass} onChange={(e) => f.updateHolding(i, "assetClass", e.target.value)} className={inputClass()}>
                   {ASSET_CLASSES.map((a) => <option key={a} value={a}>{a}</option>)}
@@ -258,6 +270,21 @@ Official Meridian Wealth Regulatory Filing`;
                 </button>
               </div>
             ))}
+            <datalist id="ticker-options">
+              <option value="SBIN">State Bank of India (NSE: SBIN)</option>
+              <option value="HDFCBANK">HDFC Bank Ltd (NSE: HDFCBANK)</option>
+              <option value="HDB">HDFC Bank ADR (NYSE: HDB)</option>
+              <option value="AAPL">Apple Inc.</option>
+              <option value="MSFT">Microsoft Corp.</option>
+              <option value="BONDFUND">Fixed Income Bond Fund</option>
+            </datalist>
+            <datalist id="custodian-options">
+              <option value="Zerodha" />
+              <option value="Groww" />
+              <option value="HDFC Securities" />
+              <option value="SBI Securities" />
+              <option value="ICICI Direct" />
+            </datalist>
           </div>
         </div>
 
