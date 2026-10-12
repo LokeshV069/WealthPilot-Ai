@@ -86,7 +86,9 @@ export default function Overview({ trace, client }) {
 
   const holdings = client?.holdings || [];
   const custodianTotals = holdings.reduce((acc, h) => {
-    acc[h.custodian] = (acc[h.custodian] || 0) + (h.quantity * (h.price || 100));
+    if (h.custodian) {
+      acc[h.custodian] = (acc[h.custodian] || 0) + (h.quantity * (h.price || 100));
+    }
     return acc;
   }, {});
   const totalCustValue = Object.values(custodianTotals).reduce((a, b) => a + b, 0) || totalValue;
@@ -95,15 +97,15 @@ export default function Overview({ trace, client }) {
   const custodianDonutData = Object.keys(custodianTotals).length > 0
     ? Object.keys(custodianTotals).map((cust, i) => ({
         name: cust,
-        value: Math.round((custodianTotals[cust] / totalCustValue) * 100),
+        value: totalCustValue > 0 ? Math.round((custodianTotals[cust] / totalCustValue) * 100) : 0,
         color: CUSTODIAN_COLORS[i % CUSTODIAN_COLORS.length],
       }))
-    : [
-        { name: "Charles Schwab", value: 65, color: "var(--color-gold)" },
-        { name: "Fidelity", value: 35, color: "var(--color-teal)" },
-      ];
+    : [{ name: "Unassigned", value: 100, color: "rgba(0,0,0,0.12)" }];
 
-  const activeDonutData = distributionMode === "asset" ? assetDonutData : custodianDonutData;
+  const rawActiveData = distributionMode === "asset" ? assetDonutData : custodianDonutData;
+  const activeDonutData = rawActiveData.length > 0
+    ? rawActiveData
+    : [{ name: "Unallocated", value: 100, color: "rgba(0,0,0,0.12)" }];
 
   const sparkData = client?.performance || [totalValue * 0.95, totalValue * 0.97, totalValue * 0.96, totalValue * 0.99, totalValue];
 
@@ -284,7 +286,7 @@ export default function Overview({ trace, client }) {
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <p className="font-mono text-lg">${(totalValue / 1000).toFixed(1)}K</p>
+                <p className="font-mono text-lg">{totalValue === 0 ? "$0" : `$${(totalValue / 1000).toFixed(1)}K`}</p>
                 <p className="text-[10px] text-muted">Total</p>
               </div>
             </div>

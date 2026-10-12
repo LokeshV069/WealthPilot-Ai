@@ -98,7 +98,7 @@ export default function Portfolio({ holdings = [], onAddHolding, onDeleteHolding
     showToast(`Added ${payload.ticker} (${payload.quantity} shares @ $${payload.price}) to portfolio.`, "success");
     setNewHolding({
       ticker: "",
-      custodian: "Charles Schwab",
+      custodian: "Zerodha",
       quantity: "",
       price: "",
       assetClass: "equity",

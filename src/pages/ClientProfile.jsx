@@ -38,10 +38,10 @@ function inputClass() {
   return "w-full px-3 py-2.5 text-sm bg-white border border-hairline rounded-xl focus:outline-none focus:border-gold/50 focus:ring-2 focus:ring-gold/10 transition-all";
 }
 
-export default function ClientProfile({ initialClient, client, onResult }) {
+export default function ClientProfile({ initialClient, client, onResult, onClientUpdate }) {
   const navigate = useNavigate();
   const { showToast } = useToast();
-  const f = useClientProfileForm(initialClient || client, onResult);
+  const f = useClientProfileForm(initialClient || client, onResult, onClientUpdate);
   const personalRef = useRef(null);
   const financialRef = useRef(null);
   const eventsRef = useRef(null);

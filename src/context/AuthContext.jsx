@@ -142,8 +142,12 @@ export function AuthProvider({ children }) {
     showToast("Logged out successfully.", "info");
   }
 
+  function updateUser(partialUser) {
+    setUser((prev) => (prev ? { ...prev, ...partialUser } : null));
+  }
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout, error, setError }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, logout, error, setError, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

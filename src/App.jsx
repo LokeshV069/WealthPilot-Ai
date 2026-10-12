@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { HashRouter, Routes, Route, NavLink, Navigate, useLocation } from "react-router-dom";
 import { AnimatePresence, motion, LayoutGroup } from "framer-motion";
 import {
@@ -27,7 +27,8 @@ import RiskRing from "./components/RiskRing";
 import Login from "./pages/Login";
 import Landing from "./pages/Landing";
 import { initials } from "./utils/clientDisplay";
-import { mockClientsExtended, mockTracesById, mockHoldingsById } from "./data/mockTrace";
+import { mockClientsExtended } from "./data/mockTrace";
+import { generateClientTrace } from "./utils/traceGenerator";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import heroPhoto from "./assets/hero-photo.jpg";
 import meridianLogo from "./assets/meridian-logo.png";
@@ -264,7 +265,7 @@ function TopBar({ selectedClient, onBack, isManager, onSearch, searchValue = "" 
   );
 }
 
-function AnimatedRoutes({ trace, holdings, client, onLiveResult, onAddHolding, onDeleteHolding }) {
+function AnimatedRoutes({ trace, holdings, client, onLiveResult, onClientUpdate, onAddHolding, onDeleteHolding }) {
   const location = useLocation();
   return (
     <AnimatePresence mode="wait">
@@ -285,7 +286,16 @@ function AnimatedRoutes({ trace, holdings, client, onLiveResult, onAddHolding, o
           />
           <Route path="/trace" element={<AgentTrace trace={trace} />} />
           <Route path="/compliance" element={<Compliance trace={trace} />} />
-          <Route path="/update" element={<ClientProfile initialClient={client || trace?.client} onResult={onLiveResult} />} />
+          <Route
+            path="/update"
+            element={
+              <ClientProfile
+                initialClient={client || trace?.client}
+                onResult={onLiveResult}
+                onClientUpdate={onClientUpdate}
+              />
+            }
+          />
         </Routes>
       </motion.div>
     </AnimatePresence>
@@ -293,17 +303,85 @@ function AnimatedRoutes({ trace, holdings, client, onLiveResult, onAddHolding, o
 }
 
 function AppShell() {
-  const { user } = useAuth();
-  const isManager = user.role === "manager";
-  const [clientsList, setClientsList] = useState(mockClientsExtended);
+  const { user, token, updateUser } = useAuth();
+  const isManager = user?.role === "manager";
+  const [clientsList, setClientsList] = useState([]);
   const [managerTab, setManagerTab] = useState("dashboard");
-  const [selectedClient, setSelectedClient] = useState(
-    isManager ? null : clientsList.find((c) => c.id === user.clientId)
-  );
+
+  // Initial client state derived strictly from authenticated user
+  const [selectedClient, setSelectedClient] = useState(() => {
+    if (isManager) return null;
+    return {
+      id: user?.clientId || "C001",
+      clientId: user?.clientId || "C001",
+      name: user?.name || "Client",
+      email: user?.email || "",
+      age: 30,
+      riskTolerance: "Moderate",
+      riskScore: 7,
+      accentColor: "#C9A227",
+      totalValue: 0,
+      performancePct: 0,
+      performance: [0],
+      activePlan: "Balanced Growth Strategy",
+      nextMilestone: "Initial Portfolio Review",
+      status: "Active",
+      holdings: [],
+      lifeEvents: [],
+      targetAllocation: { equity: 60, bonds: 20, cash: 10, alternatives: 10 },
+      goals: [{ label: "Retirement Fund", progress: 0 }],
+    };
+  });
+
   const [liveTraces, setLiveTraces] = useState({});
-  const [holdingsById, setHoldingsById] = useState(mockHoldingsById);
-  const trace = selectedClient ? (liveTraces[selectedClient.id] || mockTracesById[selectedClient.id]) : null;
-  const holdings = selectedClient ? (holdingsById[selectedClient.id] || mockHoldingsById[selectedClient.id] || []) : [];
+
+  // 1. Fetch real client profile or manager client list from the database
+  useEffect(() => {
+    async function loadBackendData() {
+      if (!token) return;
+      try {
+        if (isManager) {
+          const res = await fetch("/api/clients", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.success && Array.isArray(data.data)) {
+              const formatted = data.data.map((c) => ({
+                ...c,
+                id: c.clientId || c._id,
+              }));
+              setClientsList(formatted);
+            }
+          }
+        } else {
+          const res = await fetch("/api/clients/me", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.success && data.data) {
+              const c = data.data;
+              setSelectedClient({
+                ...c,
+                id: c.clientId || c._id,
+              });
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("Could not load backend data, using local state:", err);
+      }
+    }
+
+    loadBackendData();
+  }, [isManager, token, user?.clientId]);
+
+  // Dynamic trace and holdings directly from selectedClient
+  const trace = selectedClient
+    ? liveTraces[selectedClient.id] || selectedClient.latestTrace || generateClientTrace(selectedClient)
+    : null;
+  const holdings = selectedClient ? (selectedClient.holdings || []) : [];
 
   function handleLiveResult(data) {
     if (selectedClient) {
@@ -311,30 +389,114 @@ function AppShell() {
     }
   }
 
-  function handleAddHolding(newHolding) {
-    if (!selectedClient) return;
-    setHoldingsById((prev) => {
-      const existing = prev[selectedClient.id] || mockHoldingsById[selectedClient.id] || [];
-      return {
-        ...prev,
-        [selectedClient.id]: [...existing, newHolding],
-      };
-    });
+  // Handle client profile updates (name, age, risk tolerance, targets)
+  function handleClientUpdate(updatedData) {
+    const updated = {
+      ...selectedClient,
+      ...updatedData,
+      id: updatedData.clientId || updatedData.id || selectedClient?.id,
+    };
+    setSelectedClient(updated);
+
+    // If client edited their name, synchronize user session across all headers immediately
+    if (updatedData.name && updatedData.name !== user?.name) {
+      updateUser?.({ name: updatedData.name });
+    }
+
+    if (isManager) {
+      setClientsList((prev) =>
+        prev.map((c) => (c.id === updated.id ? { ...c, ...updated } : c))
+      );
+    }
   }
 
-  function handleDeleteHolding(ticker) {
+  // Add stock holding: persists to backend database
+  async function handleAddHolding(newHolding) {
     if (!selectedClient) return;
-    setHoldingsById((prev) => {
-      const existing = prev[selectedClient.id] || mockHoldingsById[selectedClient.id] || [];
-      return {
-        ...prev,
-        [selectedClient.id]: existing.filter((h) => h.ticker !== ticker),
-      };
-    });
+    const clientId = selectedClient.clientId || selectedClient.id;
+
+    // Optimistic update
+    const updatedHoldings = [...(selectedClient.holdings || []), newHolding];
+    const updatedTotal = updatedHoldings.reduce(
+      (sum, h) => sum + (Number(h.quantity) || 0) * (Number(h.price) || 0),
+      0
+    );
+    const updatedClient = {
+      ...selectedClient,
+      holdings: updatedHoldings,
+      totalValue: Math.round(updatedTotal * 100) / 100,
+      performance: [updatedTotal],
+    };
+    setSelectedClient(updatedClient);
+
+    try {
+      if (token) {
+        const res = await fetch(`/api/clients/${clientId}/holdings`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify(newHolding),
+        });
+        if (res.ok) {
+          const resData = await res.json();
+          if (resData.success && resData.data) {
+            const serverClient = { ...resData.data, id: resData.data.clientId || resData.data._id };
+            setSelectedClient(serverClient);
+            if (isManager) {
+              setClientsList((prev) => prev.map((c) => (c.id === clientId ? serverClient : c)));
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to persist holding to server:", err);
+    }
+  }
+
+  // Delete stock holding: persists to backend database
+  async function handleDeleteHolding(ticker) {
+    if (!selectedClient) return;
+    const clientId = selectedClient.clientId || selectedClient.id;
+
+    // Optimistic update
+    const updatedHoldings = (selectedClient.holdings || []).filter(
+      (h) => h.ticker.toUpperCase() !== ticker.toUpperCase()
+    );
+    const updatedTotal = updatedHoldings.reduce(
+      (sum, h) => sum + (Number(h.quantity) || 0) * (Number(h.price) || 0),
+      0
+    );
+    const updatedClient = {
+      ...selectedClient,
+      holdings: updatedHoldings,
+      totalValue: Math.round(updatedTotal * 100) / 100,
+      performance: [updatedTotal],
+    };
+    setSelectedClient(updatedClient);
+
+    try {
+      if (token) {
+        const res = await fetch(`/api/clients/${clientId}/holdings/${ticker}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const resData = await res.json();
+          if (resData.success && resData.data) {
+            const serverClient = { ...resData.data, id: resData.data.clientId || resData.data._id };
+            setSelectedClient(serverClient);
+            if (isManager) {
+              setClientsList((prev) => prev.map((c) => (c.id === clientId ? serverClient : c)));
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to delete holding on server:", err);
+    }
   }
 
   function handleRebalance(clientId) {
-    const currentTrace = liveTraces[clientId] || mockTracesById[clientId];
+    const currentTrace = liveTraces[clientId] || selectedClient?.latestTrace || generateClientTrace(selectedClient);
     if (currentTrace) {
       const rebalancedTrace = {
         ...currentTrace,
@@ -419,6 +581,7 @@ function AppShell() {
                     holdings={holdings}
                     client={selectedClient}
                     onLiveResult={handleLiveResult}
+                    onClientUpdate={handleClientUpdate}
                     onAddHolding={handleAddHolding}
                     onDeleteHolding={handleDeleteHolding}
                   />
