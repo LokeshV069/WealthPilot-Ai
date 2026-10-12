@@ -5,14 +5,15 @@ import RiskRing from "./RiskRing";
 import Sparkline from "./Sparkline";
 
 function percentChange(performance) {
+  if (!Array.isArray(performance) || performance.length < 2 || !performance[0]) return 0;
   const first = performance[0];
   const last = performance[performance.length - 1];
   return ((last - first) / first) * 100;
 }
 
-export default function ClientCard({ client, breached, onSelect, delay }) {
-  const style = RISK_STYLES[client.riskTolerance];
-  const change = percentChange(client.performance);
+export default function ClientCard({ client = {}, breached, onSelect, delay }) {
+  const style = RISK_STYLES[client?.riskTolerance] || { badge: "text-gold", avatar: "bg-gold/20 text-gold", spark: "#C9A227" };
+  const change = percentChange(client?.performance);
   const positive = change >= 0;
   const { rotateX, rotateY, onMouseMove, onMouseLeave } = useTilt();
 

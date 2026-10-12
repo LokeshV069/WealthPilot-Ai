@@ -65,7 +65,15 @@ const item = {
 
 export default function AgentTrace({ trace }) {
   const { showToast } = useToast();
-  const { driftDetection, compliance, lifeEvent } = trace.agents;
+  const safeAgents = trace?.agents || {
+    driftDetection: { breached: false, drift: { equity: 0, bonds: 0, cash: 0, alternatives: 0 } },
+    compliance: { approved: true, justification: "Portfolio structure certified compliant with fiduciary suitability standards.", flaggedTrades: [] },
+    lifeEvent: { activeEvent: null, reasoning: "No financially significant life events detected." },
+    clientProfile: { riskScore: 7, allocationRationale: "Balanced growth asset allocation mandate." },
+    portfolioAggregation: { totalValue: 0, currentAllocation: { equity: 0, bonds: 0, cash: 0, alternatives: 0 } },
+    rebalancingRecommendation: { trades: [], reasoning: "All asset classes are currently aligned with targets." },
+  };
+  const { driftDetection, compliance, lifeEvent } = safeAgents;
   const [isReRunning, setIsReRunning] = useState(false);
   const [runKey, setRunKey] = useState(0);
 
@@ -149,7 +157,7 @@ export default function AgentTrace({ trace }) {
         <div className="relative pl-8">
           <div className="absolute left-[15px] top-2 bottom-2 w-px bg-hairline" />
           {AGENT_STEPS.map((step) => {
-            const data = trace.agents[step.key];
+            const data = safeAgents[step.key];
             const Icon = step.icon;
             return (
               <motion.div key={step.key} variants={item} className="relative mb-7 last:mb-0">

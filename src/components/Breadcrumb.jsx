@@ -21,7 +21,7 @@ export default function Breadcrumb({ isManager, client, onHome }) {
         <span>Meridian</span>
       )}
       <ChevronRight size={11} />
-      <span>{client?.name}</span>
+      <span>{client?.name || "Client"}</span>
       <ChevronRight size={11} />
       <span className="text-ink font-medium">{pageLabel}</span>
     </div>

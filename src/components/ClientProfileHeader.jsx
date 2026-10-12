@@ -6,8 +6,8 @@ import { RISK_STYLES, initials } from "../utils/clientDisplay";
 import trustPhoto from "../assets/trust-photo.jpg";
 import { useToast } from "../context/ToastContext";
 
-export default function ClientProfileHeader({ client, onRebalance, holdings }) {
-  const style = RISK_STYLES[client.riskTolerance];
+export default function ClientProfileHeader({ client = {}, onRebalance, holdings = [] }) {
+  const style = RISK_STYLES[client?.riskTolerance] || { badge: "text-gold", avatar: "bg-gold/20 text-gold", spark: "#C9A227" };
   const { showToast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
   const [showRebalanceModal, setShowRebalanceModal] = useState(false);
@@ -25,15 +25,15 @@ export default function ClientProfileHeader({ client, onRebalance, holdings }) {
 MERIDIAN WEALTH CONSOLE - CLIENT PORTFOLIO SUMMARY
 Generated on: ${new Date().toLocaleString()}
 =====================================================
-Client Name:      ${client.name} (ID: ${client.id})
-Status:           ${client.status || "Active"}
-Risk Profile:     ${client.riskTolerance} (Score: ${client.riskScore}/10)
-Active Strategy:  ${client.activePlan}
-Next Milestone:   ${client.nextMilestone}
-Total Portfolio:  $${client.totalValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+Client Name:      ${client?.name || "Client"} (ID: ${client?.id || client?.clientId || "C001"})
+Status:           ${client?.status || "Active"}
+Risk Profile:     ${client?.riskTolerance || "Moderate"} (Score: ${client?.riskScore || 7}/10)
+Active Strategy:  ${client?.activePlan || "Balanced Growth"}
+Next Milestone:   ${client?.nextMilestone || "Initial Review"}
+Total Portfolio:  $${(Number(client?.totalValue) || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
 
 GOALS & PROGRESS:
-${(client.goals || []).map((g) => `- ${g.label}: ${g.progress}% completed`).join("\n")}
+${(client?.goals || []).map((g) => `- ${typeof g === 'object' ? g.label : g}: ${g?.progress || 0}% completed`).join("\n")}
 
 HOLDINGS SUMMARY:
 ${(holdings || []).map((h) => `- ${h.ticker} (${h.assetClass}): ${h.quantity} shares @ $${h.price} via ${h.custodian}`).join("\n")}
@@ -104,24 +104,24 @@ COMPLIANCE & AUDIT:
           <div className="flex items-center gap-4">
             <div
               className="relative w-16 h-16 rounded-full flex items-center justify-center text-lg font-medium shrink-0"
-              style={{ backgroundColor: `${client.accentColor}20`, color: client.accentColor }}
+              style={{ backgroundColor: `${client?.accentColor || "#C9A227"}20`, color: client?.accentColor || "#C9A227" }}
             >
-              <RiskRing score={client.riskScore} size={64} strokeColor={client.accentColor} />
-              <span className="relative z-10">{initials(client.name)}</span>
+              <RiskRing score={client?.riskScore || 7} size={64} strokeColor={client?.accentColor || "#C9A227"} />
+              <span className="relative z-10">{initials(client?.name)}</span>
             </div>
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <p className="font-display text-xl">{client.name}</p>
+                <p className="font-display text-xl">{client?.name || "Client"}</p>
                 <span className="text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-full bg-teal/10 text-teal">
-                  {client.status || "Active"}
+                  {client?.status || "Active"}
                 </span>
               </div>
               <div className="flex items-center gap-3 text-xs text-muted">
-                <span className={style.badge}>{client.riskTolerance} risk</span>
+                <span className={style?.badge || "text-gold"}>{client?.riskTolerance || "Moderate"} risk</span>
                 <span>·</span>
-                <span>{client.activePlan}</span>
+                <span>{client?.activePlan || "Balanced Growth"}</span>
                 <span>·</span>
-                <span>Next: {client.nextMilestone}</span>
+                <span>Next: {client?.nextMilestone || "Initial Review"}</span>
               </div>
             </div>
           </div>

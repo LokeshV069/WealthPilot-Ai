@@ -52,9 +52,33 @@ const PERIOD_OPTIONS = ["This Month", "This Quarter", "Year to Date", "All Time"
 
 export default function Overview({ trace, client }) {
   const { showToast } = useToast();
-  const { portfolioAggregation, driftDetection, clientProfile } = trace.agents;
-  const { totalValue, currentAllocation } = portfolioAggregation;
-  const { drift, breached, targetAllocation } = driftDetection;
+
+  const agents = trace?.agents || {
+    portfolioAggregation: {
+      totalValue: client?.totalValue || 0,
+      currentAllocation: { equity: 0, bonds: 0, cash: 0, alternatives: 0 },
+    },
+    driftDetection: {
+      drift: { equity: 0, bonds: 0, cash: 0, alternatives: 0 },
+      breached: false,
+      targetAllocation: client?.targetAllocation || { equity: 60, bonds: 20, cash: 10, alternatives: 10 },
+    },
+    clientProfile: {
+      riskScore: client?.riskScore || 7,
+      allocationRationale: `Based on ${client?.name || "Client"}'s profile, asset allocation will be calculated once holdings are recorded.`,
+    },
+    rebalancingRecommendation: {
+      trades: [],
+      reasoning: "Portfolio is newly initialized. Add your asset holdings in the Portfolio section to calculate live rebalancing recommendations.",
+    },
+  };
+
+  const { portfolioAggregation, driftDetection, clientProfile } = agents;
+  const totalValue = portfolioAggregation?.totalValue || 0;
+  const currentAllocation = portfolioAggregation?.currentAllocation || { equity: 0, bonds: 0, cash: 0, alternatives: 0 };
+  const drift = driftDetection?.drift || { equity: 0, bonds: 0, cash: 0, alternatives: 0 };
+  const breached = driftDetection?.breached || false;
+  const targetAllocation = driftDetection?.targetAllocation || { equity: 60, bonds: 20, cash: 10, alternatives: 10 };
   const accent = client?.accentColor || "var(--color-gold)";
 
   const [selectedPeriod, setSelectedPeriod] = useState("This Quarter");
@@ -318,8 +342,8 @@ export default function Overview({ trace, client }) {
       </motion.div>
 
       <div className="grid grid-cols-3 gap-6">
-        <ActivityTimeline agents={trace.agents} delay={0.3} />
-        <AIInsightBanner reasoning={trace.agents.rebalancingRecommendation.reasoning} delay={0.35} />
+        <ActivityTimeline agents={agents} delay={0.3} />
+        <AIInsightBanner reasoning={agents.rebalancingRecommendation?.reasoning || "Portfolio is newly initialized."} delay={0.35} />
         <GoalsCard goals={client?.goals} accent={accent} delay={0.4} />
       </div>
     </div>

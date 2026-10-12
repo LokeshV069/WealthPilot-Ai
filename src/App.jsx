@@ -154,15 +154,15 @@ function TopBar({ selectedClient, onBack, isManager, onSearch, searchValue = "" 
               </button>
             )}
             <motion.div
-              layoutId={`avatar-${selectedClient.id}`}
+              layoutId={`avatar-${selectedClient?.id || "default"}`}
               className="relative w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium"
-              style={{ backgroundColor: `${selectedClient.accentColor}26`, color: selectedClient.accentColor }}
+              style={{ backgroundColor: `${selectedClient?.accentColor || "#C9A227"}26`, color: selectedClient?.accentColor || "#C9A227" }}
             >
-              <RiskRing score={selectedClient.riskScore} size={32} strokeColor={selectedClient.accentColor} />
-              <span className="relative z-10">{initials(selectedClient.name)}</span>
+              <RiskRing score={selectedClient?.riskScore || 7} size={32} strokeColor={selectedClient?.accentColor || "#C9A227"} />
+              <span className="relative z-10">{initials(selectedClient?.name)}</span>
             </motion.div>
-            <motion.div layoutId={`name-${selectedClient.id}`}>
-              <p className="text-sm font-medium leading-tight">{selectedClient.name}</p>
+            <motion.div layoutId={`name-${selectedClient?.id || "default"}`}>
+              <p className="text-sm font-medium leading-tight">{selectedClient?.name || "Client"}</p>
             </motion.div>
           </div>
           <div className="flex-1 max-w-xs ml-2">
@@ -240,10 +240,10 @@ function TopBar({ selectedClient, onBack, isManager, onSearch, searchValue = "" 
 
         <button onClick={() => { setMenuOpen((v) => !v); setNotifOpen(false); }} className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-ink text-bg flex items-center justify-center text-xs font-medium">
-            {initials(user.name)}
+            {initials(user?.name)}
           </div>
           <div className="hidden md:block text-left">
-            <p className="text-xs font-medium leading-tight">{user.name}</p>
+            <p className="text-xs font-medium leading-tight">{user?.name || "User"}</p>
           </div>
           <ChevronDown size={13} className="text-muted" />
         </button>
