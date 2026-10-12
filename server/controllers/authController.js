@@ -352,8 +352,8 @@ export async function seedDemoData(req, res) {
         riskTolerance: 'moderate',
         riskScore: 7,
         holdings: [
-          { ticker: 'SBIN', custodian: 'Zerodha', quantity: 50, assetClass: 'equity', price: 820 },
-          { ticker: 'BONDFUND', custodian: 'Zerodha', quantity: 100, assetClass: 'bonds', price: 100 },
+          { ticker: 'SBIN', custodian: 'Groww', quantity: 50, assetClass: 'equity', price: 820 },
+          { ticker: 'BONDFUND', custodian: 'HDFC Securities', quantity: 100, assetClass: 'bonds', price: 100 },
         ],
         totalValue: 51000,
       },
@@ -366,7 +366,7 @@ export async function seedDemoData(req, res) {
         riskTolerance: 'moderate',
         riskScore: 7,
         holdings: [
-          { ticker: 'SBIN', custodian: 'Zerodha', quantity: 50, assetClass: 'equity', price: 820 },
+          { ticker: 'SBIN', custodian: 'ICICI Direct', quantity: 50, assetClass: 'equity', price: 820 },
         ],
         totalValue: 41000,
       },

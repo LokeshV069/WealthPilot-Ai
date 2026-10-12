@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Search, ArrowRight, X, BookOpen, FileText, Cpu, ExternalLink, ShieldCheck } from "lucide-react";
+import { Search, ArrowRight, X, BookOpen, FileText, Cpu, ExternalLink, ShieldCheck, LogOut, LayoutDashboard } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import meridianLogo from "../assets/meridian-logo.png";
+import { useAuth } from "../context/AuthContext";
 
 const SPOTLIGHT_ITEMS = [
   { id: "drift", title: "Autonomous Drift Detection", category: "Capabilities", desc: "Monitors allocation variance beyond ±5% thresholds continuously." },
@@ -17,7 +18,8 @@ const RESOURCE_ITEMS = [
   { icon: BookOpen, title: "Platform API & Webhook Docs", desc: "Integrate custodian feeds via REST and WebSocket APIs." },
 ];
 
-export default function Navbar({ onSignIn, onScrollTo }) {
+export default function Navbar({ onSignIn, onGoToDashboard, onScrollTo }) {
+  const { user, logout } = useAuth();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [resourcesOpen, setResourcesOpen] = useState(false);
@@ -46,8 +48,8 @@ export default function Navbar({ onSignIn, onScrollTo }) {
           <button onClick={() => onScrollTo?.("solutions")} className="text-muted hover:text-ink transition-colors cursor-pointer">
             Our Solutions
           </button>
-          <button onClick={onSignIn} className="text-muted hover:text-ink transition-colors cursor-pointer">
-            For Advisors
+          <button onClick={user ? onGoToDashboard : onSignIn} className="text-muted hover:text-ink transition-colors cursor-pointer">
+            {user?.role === "manager" ? "Advisor Console" : user ? "Client Portal" : "For Advisors"}
           </button>
           <button onClick={() => setResourcesOpen(true)} className="text-muted hover:text-ink transition-colors cursor-pointer">
             Resources
@@ -65,18 +67,50 @@ export default function Navbar({ onSignIn, onScrollTo }) {
           >
             <Search size={17} strokeWidth={1.75} />
           </button>
-          <button
-            onClick={onSignIn}
-            className="text-sm px-4 py-2 rounded-lg border border-hairline hover:border-gold/40 transition-colors cursor-pointer"
-          >
-            Sign In
-          </button>
-          <button
-            onClick={onSignIn}
-            className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg bg-ink text-bg hover:opacity-90 transition-opacity cursor-pointer font-medium"
-          >
-            Get Started <ArrowRight size={13} />
-          </button>
+
+          {user ? (
+            <div className="flex items-center gap-2.5">
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full border border-hairline bg-black/[0.02]">
+                <div className="w-5 h-5 rounded-full bg-gold/20 text-gold flex items-center justify-center text-[10px] font-bold">
+                  {user.name ? user.name[0].toUpperCase() : "U"}
+                </div>
+                <span className="text-xs font-medium text-ink truncate max-w-[110px]">{user.name}</span>
+                <span className="text-[10px] uppercase tracking-wider text-muted px-1.5 py-0.5 rounded bg-black/[0.04]">
+                  {user.role === "manager" ? "Advisor" : "Client"}
+                </span>
+              </div>
+
+              <button
+                onClick={onGoToDashboard}
+                className="flex items-center gap-1.5 text-xs sm:text-sm px-4 py-2 rounded-lg bg-gold hover:bg-gold/90 text-bg transition-all font-medium cursor-pointer shadow-sm"
+              >
+                Go to Dashboard <ArrowRight size={13} />
+              </button>
+
+              <button
+                onClick={logout}
+                title="Log Out"
+                className="text-xs text-muted hover:text-rust p-2 rounded-lg hover:bg-black/5 transition-colors cursor-pointer"
+              >
+                <LogOut size={15} />
+              </button>
+            </div>
+          ) : (
+            <>
+              <button
+                onClick={onSignIn}
+                className="text-sm px-4 py-2 rounded-lg border border-hairline hover:border-gold/40 transition-colors cursor-pointer"
+              >
+                Sign In
+              </button>
+              <button
+                onClick={onSignIn}
+                className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg bg-ink text-bg hover:opacity-90 transition-opacity cursor-pointer font-medium"
+              >
+                Get Started <ArrowRight size={13} />
+              </button>
+            </>
+          )}
         </div>
       </nav>
 

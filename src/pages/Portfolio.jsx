@@ -25,7 +25,7 @@ export default function Portfolio({ holdings = [], onAddHolding, onDeleteHolding
   const [showAddModal, setShowAddModal] = useState(false);
   const [newHolding, setNewHolding] = useState({
     ticker: "",
-    custodian: "Zerodha",
+    custodian: "",
     quantity: "",
     price: "",
     assetClass: "equity",
@@ -86,19 +86,24 @@ export default function Portfolio({ holdings = [], onAddHolding, onDeleteHolding
       return;
     }
 
+    if (!newHolding.custodian.trim()) {
+      setFormError("Please select a custodian / depository (e.g. Zerodha, Groww, HDFC).");
+      return;
+    }
+
     const payload = {
       ticker: newHolding.ticker.trim().toUpperCase(),
-      custodian: newHolding.custodian,
+      custodian: newHolding.custodian.trim(),
       quantity: qty,
       price: prc,
       assetClass: newHolding.assetClass,
     };
 
     onAddHolding?.(payload);
-    showToast(`Added ${payload.ticker} (${payload.quantity} shares @ $${payload.price}) to portfolio.`, "success");
+    showToast(`Added ${payload.ticker} (${payload.quantity} shares @ $${payload.price}) via ${payload.custodian} to portfolio.`, "success");
     setNewHolding({
       ticker: "",
-      custodian: "Zerodha",
+      custodian: "",
       quantity: "",
       price: "",
       assetClass: "equity",
@@ -398,6 +403,7 @@ export default function Portfolio({ holdings = [], onAddHolding, onDeleteHolding
                     onChange={(e) => setNewHolding((h) => ({ ...h, custodian: e.target.value }))}
                     className="w-full bg-white/5 border border-hairline rounded-lg px-3 py-2 text-sm text-ink focus:outline-none focus:border-gold/50 cursor-pointer"
                   >
+                    <option value="" className="bg-surface text-muted">-- Select Custodian / Depository --</option>
                     {KNOWN_CUSTODIANS.map((cust) => (
                       <option key={cust} value={cust} className="bg-surface text-ink">
                         {cust}

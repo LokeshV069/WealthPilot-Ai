@@ -25,6 +25,7 @@ import heroPhoto from "../assets/hero-photo.jpg";
 import trustPhoto from "../assets/trust-photo.jpg";
 import purposeMountains from "../assets/purpose-mountains.png";
 import HeroStatCard from "../components/HeroStatCard";
+import { useAuth } from "../context/AuthContext";
 
 const SOLUTIONS = [
   { icon: Users, title: "Client Portfolio Management", description: "Get a complete view of your clients' assets, goals, and progress." },
@@ -56,7 +57,8 @@ function SectionEyebrow({ children }) {
   );
 }
 
-export default function Landing({ onSignIn }) {
+export default function Landing({ onSignIn, onGoToDashboard }) {
+  const { user } = useAuth();
   const scrollRef = useRef(null);
   const heroRef = useRef(null);
   const trustRef = useRef(null);
@@ -66,6 +68,8 @@ export default function Landing({ onSignIn }) {
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
   const [activeVideoChapter, setActiveVideoChapter] = useState(0);
+
+  const handlePrimaryAction = user ? onGoToDashboard : onSignIn;
 
   const { scrollYProgress: heroProgress } = useScroll({
     target: heroRef,
@@ -100,7 +104,7 @@ export default function Landing({ onSignIn }) {
   return (
     <div ref={scrollRef} className="h-screen overflow-y-auto bg-bg text-ink">
       <ScrollProgress containerRef={scrollRef} />
-      <Navbar onSignIn={onSignIn} onScrollTo={scrollToId} />
+      <Navbar onSignIn={onSignIn} onGoToDashboard={onGoToDashboard} onScrollTo={scrollToId} />
 
       {/* HERO */}
       <section ref={heroRef} className="relative overflow-hidden px-8 py-16 min-h-[85vh] flex flex-col justify-center">
@@ -145,8 +149,8 @@ export default function Landing({ onSignIn }) {
             Meridian Wealth Console empowers advisors and clients with intelligent insights, seamless portfolio management, and a more secure financial future.
           </motion.p>
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.15 }} className="flex items-center gap-3 mb-10">
-            <button onClick={onSignIn} className="flex items-center gap-2 text-sm px-5 py-2.5 rounded-lg bg-gold/90 hover:bg-gold text-bg font-medium transition-colors cursor-pointer">
-              Explore Our Platform <ArrowRight size={14} />
+            <button onClick={handlePrimaryAction} className="flex items-center gap-2 text-sm px-5 py-2.5 rounded-lg bg-gold/90 hover:bg-gold text-bg font-medium transition-colors cursor-pointer shadow-sm">
+              {user ? "Go to Dashboard" : "Explore Our Platform"} <ArrowRight size={14} />
             </button>
             <button
               onClick={() => setVideoModalOpen(true)}
@@ -390,10 +394,10 @@ export default function Landing({ onSignIn }) {
                     <span>Real-time agent trace execution</span>
                   </div>
                   <button
-                    onClick={() => { setVideoModalOpen(false); onSignIn(); }}
+                    onClick={() => { setVideoModalOpen(false); handlePrimaryAction(); }}
                     className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gold hover:bg-gold/90 text-bg text-xs font-medium transition-all cursor-pointer shadow-md"
                   >
-                    Launch Interactive Console <ArrowRight size={13} />
+                    {user ? "Go to Dashboard" : "Launch Interactive Console"} <ArrowRight size={13} />
                   </button>
                 </div>
               </div>
@@ -458,10 +462,10 @@ export default function Landing({ onSignIn }) {
                   Close
                 </button>
                 <button
-                  onClick={() => { setAboutModalOpen(false); onSignIn(); }}
+                  onClick={() => { setAboutModalOpen(false); handlePrimaryAction(); }}
                   className="px-5 py-2 rounded-lg text-xs font-medium bg-gold hover:bg-gold/90 text-bg transition-all cursor-pointer shadow-md"
                 >
-                  Open Advisor Console
+                  {user ? "Open Your Console" : "Open Advisor Console"}
                 </button>
               </div>
             </motion.div>

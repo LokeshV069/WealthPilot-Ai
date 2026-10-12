@@ -40,7 +40,7 @@ ${(holdings || []).map((h) => `- ${h.ticker} (${h.assetClass}): ${h.quantity} sh
 
 COMPLIANCE & AUDIT:
 - Suitability: Certified suitable under fiduciary mandate
-- Custodians: Zerodha, Groww verified
+- Custodians: ${(holdings && holdings.length > 0) ? [...new Set(holdings.map((h) => h.custodian).filter(Boolean))].join(", ") || "Direct / Self-Custody" : "Verified Depository"}
 =====================================================`;
 
       const blob = new Blob([reportText], { type: "text/plain;charset=utf-8" });

@@ -69,7 +69,7 @@ export function useClientProfileForm(initialClient, onResult, onClientUpdate) {
     setForm((f) => ({ ...f, lifeEvents: f.lifeEvents.filter((_, idx) => idx !== i) }));
   }
   function addHolding() {
-    setForm((f) => ({ ...f, holdings: [...f.holdings, { ticker: "", custodian: "Zerodha", quantity: 0, price: 0, assetClass: "equity" }] }));
+    setForm((f) => ({ ...f, holdings: [...f.holdings, { ticker: "", custodian: "", quantity: 0, price: 0, assetClass: "equity" }] }));
   }
   function updateHolding(i, field, value) {
     setForm((f) => {

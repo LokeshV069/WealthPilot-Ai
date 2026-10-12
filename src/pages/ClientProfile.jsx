@@ -65,7 +65,7 @@ DOCUMENT: ${doc.name}
 Verified: ${doc.date}
 Client: ${f.form.name || "Client"}
 Status: Fully Verified & Encrypted (256-bit)
-Custodian Verified: Zerodha / Groww
+Custodian Verified: ${[...new Set(f.form.holdings.map((h) => h.custodian).filter(Boolean))].join(", ") || "Direct / Self-Custody"}
 =========================================
 Official Meridian Wealth Regulatory Filing`;
     const blob = new Blob([docContent], { type: "text/plain" });

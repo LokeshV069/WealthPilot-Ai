@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { HashRouter, Routes, Route, NavLink, Navigate, useLocation } from "react-router-dom";
+import { HashRouter, Routes, Route, NavLink, Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion, LayoutGroup } from "framer-motion";
 import {
   LayoutDashboard,
@@ -58,14 +58,25 @@ function Sidebar({ mode, isManager, onTabChange, activeManagerTab = "dashboard" 
   return (
     <aside className="w-60 shrink-0 border-r border-hairline bg-white/[0.02] backdrop-blur-xl flex flex-col justify-between">
       <div>
-        <div className="px-5 py-5 border-b border-hairline flex items-center justify-center">
+        <Link
+          to="/"
+          title="Return to Meridian Home"
+          className="px-5 py-5 border-b border-hairline flex items-center justify-center hover:opacity-85 transition-opacity"
+        >
           <img
             src={meridianLogo}
             alt="Meridian Wealth Console"
             className="h-10 w-auto object-contain mix-blend-multiply"
           />
-        </div>
+        </Link>
         <nav className="px-3 py-4 space-y-1">
+          <Link
+            to="/"
+            className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-muted hover:text-ink hover:bg-black/[0.03] transition-colors"
+          >
+            <Home size={15} strokeWidth={1.75} />
+            Website / Home
+          </Link>
           {mode === "manager-home" ? (
             MANAGER_LINKS.map(({ id, label, icon: Icon }) => {
               const active = activeManagerTab === id;
@@ -252,10 +263,21 @@ function TopBar({ selectedClient, onBack, isManager, onSearch, searchValue = "" 
           <motion.div
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
-            className="absolute right-0 top-12 w-40 border border-hairline bg-surface rounded-lg shadow-lg overflow-hidden z-20"
+            className="absolute right-0 top-12 w-44 border border-hairline bg-surface rounded-lg shadow-lg overflow-hidden z-40 p-1"
           >
-            <button onClick={logout} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted hover:text-rust hover:bg-black/[0.03] transition-colors">
-              <LogOut size={14} strokeWidth={1.75} />
+            <Link
+              to="/"
+              onClick={() => setMenuOpen(false)}
+              className="w-full flex items-center gap-2 px-3 py-2 text-xs text-muted hover:text-ink hover:bg-black/[0.03] transition-colors rounded-md"
+            >
+              <Home size={13} strokeWidth={1.75} />
+              Website / Home
+            </Link>
+            <button
+              onClick={() => { setMenuOpen(false); logout(); }}
+              className="w-full flex items-center gap-2 px-3 py-2 text-xs text-muted hover:text-rust hover:bg-black/[0.03] transition-colors rounded-md"
+            >
+              <LogOut size={13} strokeWidth={1.75} />
               Log out
             </button>
           </motion.div>
@@ -278,7 +300,6 @@ function AnimatedRoutes({ trace, holdings, client, onLiveResult, onClientUpdate,
         className="flex-1 flex flex-col min-h-0"
       >
         <Routes location={location}>
-          <Route path="/" element={<Navigate to="/overview" replace />} />
           <Route path="/overview" element={<Overview trace={trace} client={client} />} />
           <Route
             path="/portfolio"
@@ -296,6 +317,7 @@ function AnimatedRoutes({ trace, holdings, client, onLiveResult, onClientUpdate,
               />
             }
           />
+          <Route path="*" element={<Navigate to="/overview" replace />} />
         </Routes>
       </motion.div>
     </AnimatePresence>
@@ -527,87 +549,158 @@ function AppShell() {
   }
 
   return (
-    <HashRouter>
-      <div className={`h-screen flex ${selectedClient ? "client-shell" : ""}`}>
-        <Sidebar
-          mode={selectedClient ? "client-detail" : "manager-home"}
-          isManager={isManager}
-          onTabChange={(tab) => {
-            setManagerTab(tab);
-            if (tab === "dashboard" || tab === "clients") {
-              setSelectedClient(null);
-            }
-          }}
-          activeManagerTab={managerTab}
-        />
-        <LayoutGroup>
-          <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-            <TopBar selectedClient={selectedClient} onBack={() => isManager && setSelectedClient(null)} isManager={isManager} />
-            {selectedClient && <Breadcrumb isManager={isManager} client={selectedClient} onHome={() => setSelectedClient(null)} />}
-            {selectedClient && (
-              <ClientProfileHeader
-                client={selectedClient}
-                onRebalance={handleRebalance}
-                holdings={holdings}
-              />
+    <div className={`h-screen flex ${selectedClient ? "client-shell" : ""}`}>
+      <Sidebar
+        mode={selectedClient ? "client-detail" : "manager-home"}
+        isManager={isManager}
+        onTabChange={(tab) => {
+          setManagerTab(tab);
+          if (tab === "dashboard" || tab === "clients") {
+            setSelectedClient(null);
+          }
+        }}
+        activeManagerTab={managerTab}
+      />
+      <LayoutGroup>
+        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+          <TopBar selectedClient={selectedClient} onBack={() => isManager && setSelectedClient(null)} isManager={isManager} />
+          {selectedClient && <Breadcrumb isManager={isManager} client={selectedClient} onHome={() => setSelectedClient(null)} />}
+          {selectedClient && (
+            <ClientProfileHeader
+              client={selectedClient}
+              onRebalance={handleRebalance}
+              holdings={holdings}
+            />
+          )}
+          <AnimatePresence mode="wait">
+            {!selectedClient ? (
+               <motion.div
+                key="hub"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                className="flex-1 flex flex-col min-h-0 overflow-y-auto"
+              >
+                <ManagerDashboard
+                  onSelect={setSelectedClient}
+                  clients={clientsList}
+                  onAddClient={handleAddClient}
+                />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="client"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                className="flex-1 flex flex-col min-h-0 overflow-hidden"
+              >
+                <AnimatedRoutes
+                  trace={trace}
+                  holdings={holdings}
+                  client={selectedClient}
+                  onLiveResult={handleLiveResult}
+                  onClientUpdate={handleClientUpdate}
+                  onAddHolding={handleAddHolding}
+                  onDeleteHolding={handleDeleteHolding}
+                />
+              </motion.div>
             )}
-            <AnimatePresence mode="wait">
-              {!selectedClient ? (
-                 <motion.div
-                  key="hub"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.25 }}
-                  className="flex-1 flex flex-col min-h-0 overflow-y-auto"
-                >
-                  <ManagerDashboard
-                    onSelect={setSelectedClient}
-                    clients={clientsList}
-                    onAddClient={handleAddClient}
-                  />
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="client"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.25 }}
-                  className="flex-1 flex flex-col min-h-0 overflow-hidden"
-                >
-                  <AnimatedRoutes
-                    trace={trace}
-                    holdings={holdings}
-                    client={selectedClient}
-                    onLiveResult={handleLiveResult}
-                    onClientUpdate={handleClientUpdate}
-                    onAddHolding={handleAddHolding}
-                    onDeleteHolding={handleDeleteHolding}
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </LayoutGroup>
-      </div>
-    </HashRouter>
+          </AnimatePresence>
+        </div>
+      </LayoutGroup>
+    </div>
   );
 }
 
 function Root() {
-  const { user } = useAuth();
-  const [showLogin, setShowLogin] = useState(false);
+  const { user, loading, token } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  if (user) return <AppShell />;
-  return showLogin ? <Login onBack={() => setShowLogin(false)} /> : <Landing onSignIn={() => setShowLogin(true)} />;
+  // If restoring session from token, show brief loading state
+  if (loading && !user && token) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-bg">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-gold/15 flex items-center justify-center border border-gold/30">
+            <span className="w-4 h-4 border-2 border-gold border-t-transparent rounded-full animate-spin" />
+          </div>
+          <p className="text-xs text-muted font-medium">Loading Meridian Console...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const isDashboardRoute = [
+    "/overview",
+    "/portfolio",
+    "/trace",
+    "/compliance",
+    "/update",
+    "/dashboard",
+  ].includes(location.pathname);
+
+  // If accessing dashboard route without authentication, redirect to login
+  if (isDashboardRoute && !user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // If on login route while already authenticated, redirect to appropriate dashboard
+  if (location.pathname === "/login" && user) {
+    const destination = user.role === "manager" ? "/dashboard" : "/overview";
+    return <Navigate to={destination} replace />;
+  }
+
+  // If user is accessing a dashboard route and is authenticated, render AppShell
+  if (isDashboardRoute && user) {
+    return <AppShell />;
+  }
+
+  // Default routes: Landing page is the default at "/"
+  return (
+    <Routes>
+      <Route
+        path="/"
+        element={
+          <Landing
+            onSignIn={() => navigate("/login")}
+            onGoToDashboard={() => navigate(user?.role === "manager" ? "/dashboard" : "/overview")}
+          />
+        }
+      />
+      <Route
+        path="/home"
+        element={
+          <Landing
+            onSignIn={() => navigate("/login")}
+            onGoToDashboard={() => navigate(user?.role === "manager" ? "/dashboard" : "/overview")}
+          />
+        }
+      />
+      <Route
+        path="/login"
+        element={
+          <Login
+            onBack={() => navigate("/")}
+            onSuccess={(mode) => navigate(mode === "manager" ? "/dashboard" : "/overview")}
+          />
+        }
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
 }
 
 export default function App() {
   return (
     <ToastProvider>
       <AuthProvider>
-        <Root />
+        <HashRouter>
+          <Root />
+        </HashRouter>
       </AuthProvider>
     </ToastProvider>
   );

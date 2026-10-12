@@ -63,7 +63,7 @@ const clientProfileSchema = new mongoose.Schema(
     holdings: [
       {
         ticker: { type: String, required: true },
-        custodian: { type: String, default: 'Zerodha' },
+        custodian: { type: String, default: "" },
         quantity: { type: Number, default: 0 },
         assetClass: { type: String, default: 'equity' },
         price: { type: Number, default: 0 },

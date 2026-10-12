@@ -85,8 +85,8 @@ export const memoryStore = {
       targetAllocation: { equity: 60, bonds: 20, cash: 10, alternatives: 10 },
       lifeEvents: [{ type: 'marriage', date: '2026-06-01', description: 'Recently married, filing jointly' }],
       holdings: [
-        { ticker: 'SBIN', custodian: 'Zerodha', quantity: 50, assetClass: 'equity', price: 820 },
-        { ticker: 'BONDFUND', custodian: 'Zerodha', quantity: 100, assetClass: 'bonds', price: 100 },
+        { ticker: 'SBIN', custodian: 'Groww', quantity: 50, assetClass: 'equity', price: 820 },
+        { ticker: 'BONDFUND', custodian: 'HDFC Securities', quantity: 100, assetClass: 'bonds', price: 100 },
       ],
       totalValue: 51000,
       performancePct: 4.2,
@@ -111,7 +111,7 @@ export const memoryStore = {
       targetAllocation: { equity: 60, bonds: 20, cash: 10, alternatives: 10 },
       lifeEvents: [],
       holdings: [
-        { ticker: 'SBIN', custodian: 'Zerodha', quantity: 50, assetClass: 'equity', price: 820 },
+        { ticker: 'SBIN', custodian: 'ICICI Direct', quantity: 50, assetClass: 'equity', price: 820 },
       ],
       totalValue: 41000,
       performancePct: 3.5,

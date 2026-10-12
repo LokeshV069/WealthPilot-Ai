@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Mountain, User, Briefcase, Loader2, UserPlus, LogIn, Sparkles } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
-export default function Login({ onBack }) {
+export default function Login({ onBack, onSuccess }) {
   const { login, register, error, setError } = useAuth();
   const [authType, setAuthType] = useState("login"); // 'login' | 'register'
   const [mode, setMode] = useState("manager"); // 'manager' | 'client'
@@ -17,15 +17,19 @@ export default function Login({ onBack }) {
     setLoading(true);
 
     try {
+      let ok = false;
       if (authType === "login") {
-        await login(mode, email, password);
+        ok = await login(mode, email, password);
       } else {
-        await register({
+        ok = await register({
           name,
           email,
           password,
           role: mode,
         });
+      }
+      if (ok) {
+        onSuccess?.(mode);
       }
     } finally {
       setLoading(false);

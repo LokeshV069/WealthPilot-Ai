@@ -233,7 +233,7 @@ export async function updateClientProfile(req, res) {
 export async function addClientHolding(req, res) {
   try {
     const { clientId } = req.params;
-    const { ticker, custodian = 'Zerodha', quantity = 0, price = 0, assetClass = 'equity' } = req.body;
+    const { ticker, custodian = 'Primary Depository', quantity = 0, price = 0, assetClass = 'equity' } = req.body;
 
     if (!ticker) {
       return res.status(400).json({ success: false, message: 'Ticker symbol is required.' });

@@ -1,4 +1,4 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 
 const PAGE_LABELS = {
@@ -16,9 +16,9 @@ export default function Breadcrumb({ isManager, client, onHome }) {
   return (
     <div className="shrink-0 px-8 py-2.5 border-b border-hairline flex items-center gap-1.5 text-xs text-muted">
       {isManager ? (
-        <button onClick={onHome} className="hover:text-ink transition-colors">Dashboard</button>
+        <button onClick={onHome} className="hover:text-ink transition-colors cursor-pointer">Dashboard</button>
       ) : (
-        <span>Meridian</span>
+        <Link to="/" title="Back to Meridian Home" className="hover:text-ink transition-colors cursor-pointer">Meridian</Link>
       )}
       <ChevronRight size={11} />
       <span>{client?.name || "Client"}</span>
