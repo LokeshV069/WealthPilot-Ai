@@ -1,0 +1,94 @@
+import bcrypt from 'bcryptjs';
+
+// Initial pre-hashed passwords for instant testing
+const DEFAULT_PASSWORD_HASH = bcrypt.hashSync('admin123', 10);
+const CLIENT_PASSWORD_HASH = bcrypt.hashSync('client123', 10);
+
+export const memoryStore = {
+  users: [
+    {
+      _id: 'usr_manager_001',
+      name: 'Lokesh V',
+      email: 'manager@meridian.com',
+      password: DEFAULT_PASSWORD_HASH,
+      role: 'manager',
+      clientId: null,
+      title: 'Senior Wealth Director',
+      createdAt: new Date(),
+    },
+    {
+      _id: 'usr_client_001',
+      name: 'Ananya Rao',
+      email: 'ananya@meridian.com',
+      password: CLIENT_PASSWORD_HASH,
+      role: 'client',
+      clientId: 'C001',
+      title: 'Individual Investor',
+      createdAt: new Date(),
+    },
+    {
+      _id: 'usr_client_002',
+      name: 'Lokesh',
+      email: 'lokesh@meridian.com',
+      password: CLIENT_PASSWORD_HASH,
+      role: 'client',
+      clientId: 'C002',
+      title: 'Individual Investor',
+      createdAt: new Date(),
+    },
+  ],
+
+  clientProfiles: [
+    {
+      clientId: 'C001',
+      name: 'Ananya Rao',
+      email: 'ananya@meridian.com',
+      age: 34,
+      riskTolerance: 'moderate',
+      riskScore: 7,
+      timeHorizonYears: 10,
+      liquidityNeeds: 'medium',
+      goals: ['retirement', 'child_education'],
+      targetAllocation: { equity: 60, bonds: 20, cash: 10, alternatives: 10 },
+      lifeEvents: [{ type: 'marriage', date: '2026-06-01', description: 'Recently married, filing jointly' }],
+      holdings: [
+        { ticker: 'SBIN', custodian: 'Zerodha', quantity: 50, assetClass: 'equity', price: 820 },
+        { ticker: 'BONDFUND', custodian: 'Zerodha', quantity: 100, assetClass: 'bonds', price: 100 },
+      ],
+      totalValue: 51000,
+      performancePct: 4.2,
+      performance: [49000, 49800, 50200, 50600, 51000],
+      activePlan: 'Balanced Growth Strategy',
+      nextMilestone: 'Retirement Focus',
+      status: 'Active',
+      lastActivity: '10m ago',
+      accentColor: '#C9A227',
+      latestTrace: null,
+    },
+    {
+      clientId: 'C002',
+      name: 'Lokesh',
+      email: 'lokesh@meridian.com',
+      age: 20,
+      riskTolerance: 'moderate',
+      riskScore: 7,
+      timeHorizonYears: 10,
+      liquidityNeeds: 'medium',
+      goals: ['retirement', 'child_education'],
+      targetAllocation: { equity: 60, bonds: 20, cash: 10, alternatives: 10 },
+      lifeEvents: [],
+      holdings: [
+        { ticker: 'SBIN', custodian: 'Zerodha', quantity: 50, assetClass: 'equity', price: 820 },
+      ],
+      totalValue: 41000,
+      performancePct: 3.5,
+      performance: [39000, 39800, 40200, 40600, 41000],
+      activePlan: 'Growth Acceleration',
+      nextMilestone: 'Portfolio Review',
+      status: 'Active',
+      lastActivity: 'Just now',
+      accentColor: '#4FA88F',
+      latestTrace: null,
+    },
+  ],
+};

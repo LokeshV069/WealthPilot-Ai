@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import { mockClientsExtended } from "../data/mockTrace";
 import { useToast } from "./ToastContext";
 
@@ -9,39 +9,144 @@ const MANAGER_ACCOUNT = { email: "manager@meridian.com", password: "admin123", n
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [token, setToken] = useState(() => localStorage.getItem("wealthpilot_token"));
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const { showToast } = useToast();
 
-  function login(mode, email, password) {
+  // On mount, check if there's an existing valid token
+  useEffect(() => {
+    async function restoreSession() {
+      const storedToken = localStorage.getItem("wealthpilot_token");
+      if (!storedToken) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/auth/me", {
+          headers: {
+            Authorization: `Bearer ${storedToken}`,
+          },
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.user) {
+            setUser(data.user);
+            setToken(storedToken);
+          } else {
+            localStorage.removeItem("wealthpilot_token");
+          }
+        } else {
+          localStorage.removeItem("wealthpilot_token");
+        }
+      } catch {
+        // If server is unreachable, keep existing state or clear
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    restoreSession();
+  }, []);
+
+  async function login(mode, email, password) {
     setError("");
-    if (mode === "manager") {
-      if (email === MANAGER_ACCOUNT.email && password === MANAGER_ACCOUNT.password) {
-        setUser({ role: "manager", name: MANAGER_ACCOUNT.name });
-        showToast(`Welcome back, ${MANAGER_ACCOUNT.name}.`, "success");
+    const normalizedEmail = email.trim();
+
+    try {
+      // 1. Try real Backend API
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: normalizedEmail, password, role: mode }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setUser(data.user);
+        setToken(data.token);
+        localStorage.setItem("wealthpilot_token", data.token);
+        showToast(data.message || `Welcome back, ${data.user.name}.`, "success");
         return true;
+      } else {
+        const msg = data.message || "Invalid credentials.";
+        setError(msg);
+        showToast(msg, "error");
+        return false;
       }
-      setError("Invalid manager credentials.");
-      showToast("Invalid manager credentials.", "error");
-      return false;
-    } else {
-      const client = mockClientsExtended.find((c) => c.email === email && c.password === password);
-      if (client) {
-        setUser({ role: "client", name: client.name, clientId: client.id });
-        showToast(`Welcome back, ${client.name}.`, "success");
+    } catch {
+      // 2. Fallback to offline demo credentials if backend server is unreachable
+      if (mode === "manager") {
+        if (normalizedEmail === MANAGER_ACCOUNT.email && password === MANAGER_ACCOUNT.password) {
+          const fallbackUser = { role: "manager", name: MANAGER_ACCOUNT.name, email: MANAGER_ACCOUNT.email };
+          setUser(fallbackUser);
+          showToast(`Welcome back, ${MANAGER_ACCOUNT.name} (Offline Mode).`, "success");
+          return true;
+        }
+        setError("Invalid manager credentials.");
+        showToast("Invalid manager credentials.", "error");
+        return false;
+      } else {
+        const client = mockClientsExtended.find((c) => c.email === normalizedEmail && c.password === password);
+        if (client) {
+          const fallbackUser = { role: "client", name: client.name, clientId: client.id, email: client.email };
+          setUser(fallbackUser);
+          showToast(`Welcome back, ${client.name} (Offline Mode).`, "success");
+          return true;
+        }
+        setError("Invalid client credentials.");
+        showToast("Invalid client credentials.", "error");
+        return false;
+      }
+    }
+  }
+
+  async function register(userData) {
+    setError("");
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(userData),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setUser(data.user);
+        setToken(data.token);
+        localStorage.setItem("wealthpilot_token", data.token);
+        showToast(data.message || "Account registered successfully!", "success");
         return true;
+      } else {
+        const msg = data.message || "Registration failed.";
+        setError(msg);
+        showToast(msg, "error");
+        return false;
       }
-      setError("Invalid client credentials.");
-      showToast("Invalid client credentials.", "error");
+    } catch (err) {
+      const msg = err.message || "Could not reach the registration server.";
+      setError(msg);
+      showToast(msg, "error");
       return false;
     }
   }
 
   function logout() {
-    showToast("Logged out.", "info");
+    localStorage.removeItem("wealthpilot_token");
     setUser(null);
+    setToken(null);
+    showToast("Logged out successfully.", "info");
   }
 
-  return <AuthContext.Provider value={{ user, login, logout, error }}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ user, token, loading, login, register, logout, error, setError }}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {

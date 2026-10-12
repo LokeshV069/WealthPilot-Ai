@@ -200,12 +200,25 @@ if (!client) {
 }
 
 const BOND_FUND_NAV = 100;
+
+const FALLBACK_PRICES = {
+  "SBIN": 820.0,
+  "HDFCBANK": 1650.0,
+  "HDB": 65.5,
+  "BONDFUND": 100.0,
+  "AAPL": 230.0,
+  "MSFT": 420.0
+};
+
 let totalValue = 0;
 const valueByAssetClass = { equity: 0, bonds: 0, cash: 0, alternatives: 0 };
 
 for (const holding of client.holdings) {
-  const price = holding.ticker === "BONDFUND" ? BOND_FUND_NAV : (priceMap[holding.ticker] || 0);
-  const value = price * holding.quantity;
+  const tickerKey = (holding.ticker || "").toUpperCase();
+  const price = holding.ticker === "BONDFUND"
+    ? BOND_FUND_NAV
+    : (priceMap[holding.ticker] || FALLBACK_PRICES[tickerKey] || 100);
+  const value = price * (holding.quantity || 0);
   totalValue += value;
   valueByAssetClass[holding.assetClass] = (valueByAssetClass[holding.assetClass] || 0) + value;
 }
