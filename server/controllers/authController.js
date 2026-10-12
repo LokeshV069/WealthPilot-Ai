@@ -406,3 +406,102 @@ export async function seedDemoData(req, res) {
     });
   }
 }
+
+// Automatically seed Atlas database if connected and empty
+export async function autoSeedDatabase() {
+  try {
+    if (!dbStatus.connected) return;
+    const userCount = await User.countDocuments();
+    if (userCount > 0) return;
+
+    console.log('[MongoDB Atlas] Empty database detected. Seeding initial accounts...');
+
+    // Seed Manager
+    await User.create({
+      name: 'Lokesh V',
+      email: 'manager@meridian.com',
+      password: 'admin123',
+      role: 'manager',
+      title: 'Senior Wealth Director',
+    });
+
+    // Seed Rakesh
+    await User.create({
+      name: 'Rakesh',
+      email: 'lokzx069@gmail.com',
+      password: 'client123',
+      role: 'client',
+      clientId: 'C004',
+    });
+    await User.create({
+      name: 'Rakesh',
+      email: 'lokzx@gmail.com',
+      password: 'client123',
+      role: 'client',
+      clientId: 'C004',
+    });
+    await ClientProfile.create({
+      clientId: 'C004',
+      name: 'Rakesh',
+      email: 'lokzx069@gmail.com',
+      age: 30,
+      riskTolerance: 'moderate',
+      riskScore: 7,
+      holdings: [],
+      totalValue: 0,
+      targetAllocation: { equity: 60, bonds: 20, cash: 10, alternatives: 10 },
+      goals: ['retirement'],
+    });
+
+    // Seed Ananya
+    await User.create({
+      name: 'Ananya Rao',
+      email: 'ananya@meridian.com',
+      password: 'client123',
+      role: 'client',
+      clientId: 'C001',
+    });
+    await ClientProfile.create({
+      clientId: 'C001',
+      name: 'Ananya Rao',
+      email: 'ananya@meridian.com',
+      age: 34,
+      riskTolerance: 'moderate',
+      riskScore: 7,
+      holdings: [
+        { ticker: 'SBIN', custodian: 'Groww', quantity: 50, assetClass: 'equity', price: 820 },
+        { ticker: 'BONDFUND', custodian: 'HDFC Securities', quantity: 100, assetClass: 'bonds', price: 100 },
+      ],
+      totalValue: 51000,
+      targetAllocation: { equity: 60, bonds: 20, cash: 10, alternatives: 10 },
+      goals: ['retirement', 'child_education'],
+    });
+
+    // Seed Lokesh
+    await User.create({
+      name: 'Lokesh',
+      email: 'lokesh@meridian.com',
+      password: 'client123',
+      role: 'client',
+      clientId: 'C002',
+    });
+    await ClientProfile.create({
+      clientId: 'C002',
+      name: 'Lokesh',
+      email: 'lokesh@meridian.com',
+      age: 20,
+      riskTolerance: 'moderate',
+      riskScore: 7,
+      holdings: [
+        { ticker: 'SBIN', custodian: 'ICICI Direct', quantity: 50, assetClass: 'equity', price: 820 },
+      ],
+      totalValue: 41000,
+      targetAllocation: { equity: 60, bonds: 20, cash: 10, alternatives: 10 },
+      goals: ['retirement', 'child_education'],
+    });
+
+    console.log('[MongoDB Atlas] Auto-seeding completed successfully!');
+  } catch (err) {
+    console.error('[MongoDB Atlas Auto-Seed Error]', err.message);
+  }
+}

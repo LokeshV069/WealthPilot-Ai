@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { connectDB, dbStatus } from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import clientRoutes from './routes/clientRoutes.js';
+import { autoSeedDatabase } from './controllers/authController.js';
 
 dotenv.config();
 
@@ -82,6 +83,7 @@ app.use((err, req, res, next) => {
 // Start Server
 async function startServer() {
   await connectDB();
+  await autoSeedDatabase();
 
   app.listen(PORT, () => {
     console.log(`\n======================================================`);
